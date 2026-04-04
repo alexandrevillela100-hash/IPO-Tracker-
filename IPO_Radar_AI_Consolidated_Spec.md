@@ -172,23 +172,56 @@ The landing page is designed to perform four critical jobs: explain what IPO Rad
    * *Visual:* A product mockup showing a live IPO dashboard, a company card, a filing timeline, a "What Changed" diff panel, and a mini first-look summary.
 3. **Trust/Proof Bar:** A thin horizontal strip below the hero section featuring proof points: "Monitors S-1, S-1/A, F-1, F-1/A", "SEC-powered source ingestion", "Amendment tracking", "AI-generated first-look reports", and "Watchlists and alerts".
 4. **"What's Happening Now" Market Snapshot Strip:** A productized market snapshot with live data cards such as "New Filings This Week", "Amendments Detected", "Likely Near-Term Launches", and "Most Material Filing Change".
-5. **Core Workflow Section ("How IPO Radar AI works"):** Differentiates the product through a four-step process:
+5. **Airbnb-Style "Upcoming IPOs" Discovery Grid:** A highly visual, prominent section replacing traditional data tables with an engaging card-based layout inspired by Airbnb's property discovery experience.
+   * *Visual Cards:* Each card features a high-quality, attractive image representing the company's industry or core business (4:3 aspect ratio). Images may be AI-generated or sourced from professional stock photography, but must visually convey the company's sector and business.
+   * *Card Layout:* Three columns on desktop, two on tablet, one on mobile. Cards use rounded corners, subtle border styling, and hover effects (slight scale and shadow lift) for interactivity.
+   * *Card Content:* Below the image, each card displays:
+     - Company name (bold, prominent)
+     - Sector badge (color-coded pill, e.g., purple for Quantum Computing, green for Biotech)
+     - Filing status badge (color-coded: blue for Filed, amber for Amended, green for Priced)
+     - Ticker and exchange overlay on the image (monospaced font)
+     - A concise two-to-three sentence business description (truncated to two lines)
+     - Metrics strip at the bottom: Deal Size, Proposed Price Range, and Filing Date (monospaced font)
+   * *Interaction:* Clicking a card navigates the user to a dedicated IPO Detail Page (see below).
+
+### IPO Detail Page Specification
+
+Each company in the Upcoming IPOs grid links to a comprehensive IPO Detail Page. This page serves as the primary research destination for a specific filing, consolidating all available intelligence into a structured, scannable layout.
+
+**Page Structure:**
+
+1. **Hero Banner:** A full-width banner using the company's representative image with a gradient overlay fading into the page background. Overlaid elements include the company name, ticker/exchange, headquarters, founding year, sector badge, and filing status badge.
+2. **Action Bar:** Positioned below the hero, featuring "Add to Watchlist" and "View Full Report" buttons, plus a "Back to IPO Radar" navigation link.
+3. **Two-Column Layout (Desktop):**
+   * *Main Content (Left, 2/3 width):* Contains the following sections in order:
+     - **Business Overview:** Full narrative description of the company's business model, revenue channels, and competitive positioning. Includes CEO, employee count, and headquarters in a sub-grid.
+     - **Key Financials:** Six-metric grid displaying Revenue, Net Income, Gross Margin, Cash on Hand, Total Debt, and Employees. All financial figures use monospaced typography.
+     - **Use of Proceeds:** Narrative description of how IPO proceeds will be allocated.
+     - **Key Risk Factors:** Numbered list of the most significant risk factors extracted from the filing.
+     - **Competitive Landscape:** Narrative analysis of the company's competitive positioning and market opportunity.
+   * *Sidebar (Right, 1/3 width):* Contains:
+     - **Offering Summary:** Sticky card with Deal Size, Proposed Range, Exchange, Filing Date, and Lead Underwriters. Includes a "View SEC Filing" link.
+     - **Filing History:** Timeline visualization showing each filing event (S-1, S-1/A) with dates and descriptions.
+     - **Recent Developments:** Bulleted list of the most recent material company events.
+4. **Responsive Behavior:** On mobile, the sidebar content stacks below the main content in a single column.
+6. **Core Workflow Section ("How IPO Radar AI works"):** Differentiates the product through a four-step process:
    * *Detect:* Monitor new SEC IPO-related filings in real time.
    * *Structure:* Extract issuer, offering, financial, and risk data into a usable schema.
    * *Compare:* Identify what changed across amendments.
    * *Deliver:* Generate first-look reports, alerts, dashboards, and timelines.
-6. **Product Feature Grid:** Six modernized feature cards emphasizing workflow: SEC Filing Monitor, Amendment Diff Engine, AI First-Look Reports, IPO Calendar Intelligence, Company Profiles, and Alerts & Watchlists.
-7. **Landing-Page Data Modules:** Four specific data tables showcasing the platform's depth:
-   * *Upcoming IPOs:* Company, Ticker, Filing Status, Proposed Range, Deal Size, Lead Underwriters, AI Readiness Score.
+7. **Product Feature Grid:** Six modernized feature cards emphasizing workflow: SEC Filing Monitor, Amendment Diff Engine, AI First-Look Reports, IPO Calendar Intelligence, Company Profiles, and Alerts & Watchlists.
+8. **Secondary Data Modules:** Three specific data tables showcasing the platform's depth (complementing the visual Upcoming IPOs grid):
    * *Recently Filed:* Company, Filing Date, Form, Sector, HQ, First-Look Report Status.
    * *Recently Amended:* Company, Last Amendment Date, Key Change, Materiality, View Diff.
    * *Recently Priced:* Company, Offer Date, Deal Size, Current Price, Return from IPO.
-8. **Sample First-Look Report:** A major conversion lever showing a polished preview with company overview, offering summary, key financial metrics, top risks, what changed, preliminary peer set, and key investor questions.
-9. **"Why We're Different" Section:** Explicit positioning against traditional IPO sites. While others provide calendars, listings, and news, IPO Radar AI provides filing ingestion, structured extraction, amendment analysis, AI-generated reports, and workflow alerts.
-10. **Target User Section:** Segments including Hedge funds/long-only investors, Family offices, Investment banks/ECM teams, Corporate development teams, and IR/advisory firms.
-11. **Market Commentary/Insights:** Three cards for SEO and thought leadership: "This Week in IPOs", "Most Important Amendment This Week", and "Sector Activity Snapshot".
-12. **Final CTA Block:** Focuses on lead generation (e.g., "Book a Demo", "Join Early Access", "Request Sample Report") rather than complicated self-serve pricing on day one.
-13. **Footer:** Standard links (Product, Coverage, Reports, Pricing, Contact, Terms, Privacy) and a disclaimer that SEC filings are monitored from official public sources.
+9. **Sample First-Look Report:** A major conversion lever showing a polished preview with company overview, offering summary, key financial metrics, top risks, what changed, preliminary peer set, and key investor questions.
+10. **"Why We're Different" Section:** Explicit positioning against traditional IPO sites. While others provide calendars, listings, and news, IPO Radar AI provides filing ingestion, structured extraction, amendment analysis, AI-generated reports, and workflow alerts.
+11. **Target User Section:** Segments including Hedge funds/long-only investors, Family offices, Investment banks/ECM teams, Corporate development teams, and IR/advisory firms.
+12. **Market Commentary/Insights:** Three cards for SEO and thought leadership: "This Week in IPOs", "Most Important Amendment This Week", and "Sector Activity Snapshot".
+13. **Final CTA Block:** Focuses on lead generation (e.g., "Book a Demo", "Join Early Access", "Request Sample Report") rather than complicated self-serve pricing on day one.
+14. **Footer:** Standard links (Product, Coverage, Reports, Pricing, Contact, Terms, Privacy) and a disclaimer that SEC filings are monitored from official public sources.
+
+**Design Language for Both Pages:** The interface uses a dark charcoal/navy base (background), slate card surfaces, teal (#2DD4BF) as the primary accent for interactive elements, and muted gold for premium highlights. Typography combines DM Sans for headings and body text with JetBrains Mono for all financial data and metrics. Green and red are reserved strictly for market data indicators.
 
 **Strategic Positioning:** The landing page must remain narrowly focused around the differentiated wedge: *"We turn SEC IPO filings into structured, actionable intelligence."*
 
