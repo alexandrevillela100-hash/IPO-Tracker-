@@ -159,24 +159,38 @@ The workflow layer provides the user interface and functionality for interacting
 
 ### Landing Page Specification
 
-The landing page is designed to convert visitors into demos, trials, or sign-ups by proving immediate value with live-looking IPO intelligence. It should feel closer to an institutional research terminal (e.g., Bloomberg, CapIQ) than a generic SaaS or media site.
+The landing page is designed to perform four critical jobs: explain what IPO Radar AI is in one sentence, prove immediate value with live-looking IPO intelligence, show how the product works, and convert visitors into demos, trials, or sign-ups. The visual language should feel closer to an institutional research terminal (e.g., Bloomberg, CapIQ) than a generic SaaS or media site. 
 
-**Design Language:** Dark navy/charcoal base, off-white text, muted blue/teal accents, restrained use of green/red for market changes, dense but elegant tables.
+**Design Language:** The interface should utilize a dark navy or charcoal base, off-white text, and muted blue or teal accents. Green and red should be used with restraint, strictly reserved for indicating market changes. Tables must be dense but elegant, cultivating a "terminal meets modern enterprise SaaS" aesthetic.
 
-**Page Structure (Final Order):**
-1. Top Navigation (Product, Coverage, Reports, Pricing, Login, CTA)
-2. Hero Section ("See the IPO before the market does.")
-3. Trust/Proof Bar (Monitors S-1/F-1, SEC-powered, AI-generated reports)
-4. "What's happening now" Market Snapshot Strip (Live data cards: New Filings, Amendments, Likely Launches, Material Changes)
-5. Core Workflow Section ("How IPO Radar AI works": Detect, Structure, Compare, Deliver)
-6. Product Feature Grid (SEC Filing Monitor, Amendment Diff Engine, AI First-Look Reports, IPO Calendar Intelligence, Company Profiles, Alerts & Watchlists)
-7. Data Modules (Upcoming IPOs, Recently Filed, Recently Amended, Recently Priced)
-8. Sample First-Look Report (Conversion lever)
-9. "Why we're different" Section (Positioning against traditional IPO sites)
-10. Target User Section (Hedge funds, family offices, investment banks, corporate development)
-11. Market Commentary/Insights (Weekly updates)
-12. Final CTA Block (Book a Demo, Join Early Access)
-13. Footer
+**Page Structure and Components (In Order):**
+
+1. **Top Navigation:** Kept simple, featuring Product, Coverage, Reports, Pricing, Login, and a primary call-to-action (CTA) such as "Book a Demo" or "Start Trial".
+2. **Hero Section:** Immediately communicates that this is an IPO intelligence platform that monitors filings and produces reports.
+   * *Headline:* "See the IPO before the market does."
+   * *Subheadline:* "IPO Radar AI turns SEC filings into institutional-grade initiation reports—instantly."
+   * *Visual:* A product mockup showing a live IPO dashboard, a company card, a filing timeline, a "What Changed" diff panel, and a mini first-look summary.
+3. **Trust/Proof Bar:** A thin horizontal strip below the hero section featuring proof points: "Monitors S-1, S-1/A, F-1, F-1/A", "SEC-powered source ingestion", "Amendment tracking", "AI-generated first-look reports", and "Watchlists and alerts".
+4. **"What's Happening Now" Market Snapshot Strip:** A productized market snapshot with live data cards such as "New Filings This Week", "Amendments Detected", "Likely Near-Term Launches", and "Most Material Filing Change".
+5. **Core Workflow Section ("How IPO Radar AI works"):** Differentiates the product through a four-step process:
+   * *Detect:* Monitor new SEC IPO-related filings in real time.
+   * *Structure:* Extract issuer, offering, financial, and risk data into a usable schema.
+   * *Compare:* Identify what changed across amendments.
+   * *Deliver:* Generate first-look reports, alerts, dashboards, and timelines.
+6. **Product Feature Grid:** Six modernized feature cards emphasizing workflow: SEC Filing Monitor, Amendment Diff Engine, AI First-Look Reports, IPO Calendar Intelligence, Company Profiles, and Alerts & Watchlists.
+7. **Landing-Page Data Modules:** Four specific data tables showcasing the platform's depth:
+   * *Upcoming IPOs:* Company, Ticker, Filing Status, Proposed Range, Deal Size, Lead Underwriters, AI Readiness Score.
+   * *Recently Filed:* Company, Filing Date, Form, Sector, HQ, First-Look Report Status.
+   * *Recently Amended:* Company, Last Amendment Date, Key Change, Materiality, View Diff.
+   * *Recently Priced:* Company, Offer Date, Deal Size, Current Price, Return from IPO.
+8. **Sample First-Look Report:** A major conversion lever showing a polished preview with company overview, offering summary, key financial metrics, top risks, what changed, preliminary peer set, and key investor questions.
+9. **"Why We're Different" Section:** Explicit positioning against traditional IPO sites. While others provide calendars, listings, and news, IPO Radar AI provides filing ingestion, structured extraction, amendment analysis, AI-generated reports, and workflow alerts.
+10. **Target User Section:** Segments including Hedge funds/long-only investors, Family offices, Investment banks/ECM teams, Corporate development teams, and IR/advisory firms.
+11. **Market Commentary/Insights:** Three cards for SEO and thought leadership: "This Week in IPOs", "Most Important Amendment This Week", and "Sector Activity Snapshot".
+12. **Final CTA Block:** Focuses on lead generation (e.g., "Book a Demo", "Join Early Access", "Request Sample Report") rather than complicated self-serve pricing on day one.
+13. **Footer:** Standard links (Product, Coverage, Reports, Pricing, Contact, Terms, Privacy) and a disclaimer that SEC filings are monitored from official public sources.
+
+**Strategic Positioning:** The landing page must remain narrowly focused around the differentiated wedge: *"We turn SEC IPO filings into structured, actionable intelligence."*
 
 ## IX. Security, Operations, and Documentation
 
