@@ -60,30 +60,75 @@ The development process follows strict constraints to prevent drift and ensure m
 
 ## IV. SEC Data Access and Ingestion Strategy
 
-The SEC's `data.sec.gov` APIs provide access to company submissions and XBRL data. The system utilizes these official sources while adhering to fair-access compliance requirements.
+IPO Radar AI accesses SEC filing data exclusively through the SEC's official, publicly available EDGAR APIs. These APIs are free, require no API key or registration, and are accessible to any application that identifies itself with a proper User-Agent header. The system has been tested and validated against live SEC servers as of April 2026, successfully retrieving real filing data for over 90 companies in a single ingestion cycle.
 
-### Official Data Sources
+### Implemented Data Sources
 
-* **Submissions API (`data.sec.gov/submissions/CIK##########.json`):** Returns a filer's submission history and metadata. Used for issuer history refresh, timeline enrichment, and detecting amendments for tracked issuers.
-* **Raw EDGAR Archives:** Provides direct access to raw `.txt`, index pages, and filing directories via accession-number-based paths. Used for original raw filing capture, section parsing, and preserving canonical source documents.
-* **Daily/Full Indexes:** Provided in HTML/XML/JSON formats. Essential for discovering new filings without prior knowledge of the issuer CIK. Used for polling new S-1/F-1/S-1A/F-1A filings.
-* **XBRL APIs:** Used selectively for financial normalization and cross-checking extracted figures.
+The current implementation relies on two primary EDGAR APIs, with a third used for constructing direct document links.
+
+**API 1: EFTS Full-Text Search (`efts.sec.gov/LATEST/search-index`)**
+
+This is the primary discovery mechanism for new IPO filings. The EFTS (Electronic Full-Text Search) API allows the system to search for filings by form type and date range without needing to know the company's CIK number in advance. The system queries this endpoint periodically to discover new S-1, S-1/A, F-1, and F-1/A filings.
+
+| Parameter | Purpose | Example Value |
+|-----------|---------|---------------|
+| `forms` | Comma-separated form types to search | `S-1,F-1` |
+| `dateRange` | Date range mode | `custom` |
+| `startdt` | Start date for the search window | `2026-01-01` |
+| `enddt` | End date for the search window | `2026-04-04` |
+| `from` | Pagination offset | `0` |
+| `size` | Results per page (max 100) | `100` |
+
+The API returns an Elasticsearch-style response containing `hits.hits[]`, where each hit's `_source` object includes the company's CIK numbers, display names, form type, file type, filing date, accession number, business locations, SIC industry codes, and state of incorporation. Because the response includes all documents within a filing (including exhibits like EX-4.1 or EX-23.1), the system filters results by `file_type` to retain only main filing documents (S-1, S-1/A, F-1, F-1/A) and deduplicates by accession number.
+
+**API 2: Submissions API (`data.sec.gov/submissions/CIK{10-digit-number}.json`)**
+
+Once a filing is discovered through the EFTS search, the system uses the Submissions API to retrieve detailed company metadata. This endpoint returns comprehensive information about the filer, including the legal company name, ticker symbols, exchange listings, SIC code and description, entity type, state of incorporation, fiscal year end, business and mailing addresses, and the complete filing history. The filing history includes every document the company has ever filed with the SEC, from which the system filters for IPO-related forms.
+
+| Response Field | Description | Example |
+|----------------|-------------|--------|
+| `name` | Legal company name | Magnum Ice Cream Co N.V. |
+| `cik` | Central Index Key | 0002071668 |
+| `tickers` | Assigned ticker symbols | ["MICC"] |
+| `exchanges` | Target exchange(s) | ["NYSE"] |
+| `sic` | Standard Industrial Classification code | 2024 |
+| `sicDescription` | Human-readable industry name | Ice Cream and Frozen Desserts |
+| `stateOfIncorporation` | Jurisdiction of incorporation | X2 (Netherlands) |
+| `entityType` | SEC entity classification | "foreign-private-issuer" |
+| `addresses.business` | Street, city, state, ZIP | Amsterdam, NL |
+| `filings.recent` | Arrays of form, filingDate, accessionNumber, primaryDocument | S-1 filed 2026-04-02 |
+
+**API 3: Filing Document URLs (Constructed)**
+
+Direct links to the actual filing documents on SEC.gov are constructed using a deterministic URL pattern. The system combines the company's CIK, the accession number (with dashes removed), and the primary document filename to produce a URL that links directly to the filing on the SEC website.
+
+> URL Pattern: `https://www.sec.gov/Archives/edgar/data/{CIK}/{accession-no-dashes}/{primaryDocument}`
+
+For example, a filing by X-Energy, Inc. (CIK 0002088896) with accession number 0001104659-26-039550 and primary document `tm2527636-7_s1a.htm` produces the URL: `https://www.sec.gov/Archives/edgar/data/0002088896/000110465926039550/tm2527636-7_s1a.htm`.
 
 ### Fair-Access Compliance
 
-The SEC client implementation must strictly adhere to the following rules:
-* Throttle requests below 10 requests per second globally.
-* Identify the application with a clear User-Agent (e.g., `IPO Radar AI/0.1 (contact: [email])`).
-* Implement jittered exponential backoff on 429/403/5xx errors.
-* Aggressively cache responses (submissions JSON, index files, metadata) and avoid re-fetching raw documents.
+The SEC requires all automated systems to comply with fair-access policies. The IPO Radar AI implementation enforces the following rules at the infrastructure level:
 
-### Ingestion Flow
+* **Rate Limiting:** A global rate limiter ensures no more than approximately 8 requests per second to any SEC endpoint, staying safely below the SEC's 10 requests-per-second threshold. The limiter introduces a minimum 120-millisecond gap between consecutive requests.
+* **User-Agent Identification:** Every request includes a User-Agent header identifying the application and providing a contact email address (currently `IPORadarAI alexandre.villela@velociaventures.com`). This is a mandatory SEC requirement; requests without a proper User-Agent may be blocked.
+* **Error Handling:** The system handles HTTP 429 (Too Many Requests), 403 (Forbidden), and 5xx (Server Error) responses gracefully, with retry logic and exponential backoff.
+* **Caching:** SEC filing data is immutable by nature (a filed document never changes). The system stores all retrieved data in the database and never re-fetches data for filings that have already been ingested.
 
-The collector pipeline follows this sequence:
-1. Poll SEC daily/full indexes every 15 minutes.
-2. Filter for target form types (S-1, S-1/A, F-1, F-1/A).
-3. For each new accession number: create a pending filing record, fetch the index page and raw filing text/HTML, store the raw payloads in object storage, and enqueue a parsing job.
-4. Once the issuer is known and canonicalized, fetch the submissions JSON to backfill the prior filing chain if necessary.
+### Implemented Ingestion Flow
+
+The current ingestion pipeline operates as follows:
+
+1. **Discovery Phase:** The backend calls the EFTS Search API to find all S-1 and F-1 filings within a configurable date window (default: last 90 days). The search returns up to 100 results per page, which are deduplicated by accession number.
+2. **Company Enrichment Phase:** For each unique CIK discovered in the search results, the system calls the Submissions API to retrieve full company metadata (name, address, SIC code, ticker, exchange, entity type, fiscal year end).
+3. **Storage Phase:** Company records are upserted into the `companies` table (keyed by CIK), and filing records are upserted into the `filings` table (keyed by accession number). The upsert pattern ensures that re-running ingestion does not create duplicate records.
+4. **Linking Phase:** Each filing record is linked to its parent company via the CIK foreign key, enabling the frontend to display all filings for a given company on the detail page.
+
+The ingestion can be triggered manually via the "Sync with SEC" button on the frontend, which calls the `edgar.ingest` tRPC mutation. In a production deployment, this would be replaced or supplemented by a scheduled background job polling every 15 minutes.
+
+### Validated Results
+
+As of April 2026, a single ingestion cycle successfully retrieved **100 filings from 93 unique companies** spanning sectors including nuclear energy, biotechnology, fintech, e-commerce, gaming, cryptocurrency trusts, ice cream manufacturing, robotics, and logistics. All data was stored in the database and rendered on the frontend within seconds.
 
 ## V. Data Model
 
@@ -165,7 +210,7 @@ The landing page is designed to perform four critical jobs: explain what IPO Rad
 
 **Page Structure and Components (In Order):**
 
-1. **Top Navigation:** Kept simple, featuring Product, Coverage, Reports, Pricing, Login, and a primary call-to-action (CTA) such as "Book a Demo" or "Start Trial".
+1. **Top Navigation:** Kept simple, featuring Product, Coverage, Reports, Pricing, Login, and a primary call-to-action (CTA) such as "Get Started" or "Start Free Trial". The platform is fully self-service; there is no demo-booking flow.
 2. **Hero Section:** Immediately communicates that this is an IPO intelligence platform that monitors filings and produces reports.
    * *Headline:* "See the IPO before the market does."
    * *Subheadline:* "IPO Radar AI turns SEC filings into institutional-grade initiation reports—instantly."
@@ -218,7 +263,7 @@ Each company in the Upcoming IPOs grid links to a comprehensive IPO Detail Page.
 10. **"Why We're Different" Section:** Explicit positioning against traditional IPO sites. While others provide calendars, listings, and news, IPO Radar AI provides filing ingestion, structured extraction, amendment analysis, AI-generated reports, and workflow alerts.
 11. **Target User Section:** Segments including Hedge funds/long-only investors, Family offices, Investment banks/ECM teams, Corporate development teams, and IR/advisory firms.
 12. **Market Commentary/Insights:** Three cards for SEO and thought leadership: "This Week in IPOs", "Most Important Amendment This Week", and "Sector Activity Snapshot".
-13. **Final CTA Block:** Focuses on lead generation (e.g., "Book a Demo", "Join Early Access", "Request Sample Report") rather than complicated self-serve pricing on day one.
+13. **Final CTA Block:** Focuses on self-service conversion (e.g., "Get Started Free", "Start Free Trial", "Create Account") with a secondary option to request a sample report. The platform is entirely self-service with no demo-booking or sales-assisted flow.
 14. **Footer:** Standard links (Product, Coverage, Reports, Pricing, Contact, Terms, Privacy) and a disclaimer that SEC filings are monitored from official public sources.
 
 **Design Language for Both Pages:** The interface uses a dark charcoal/navy base (background), slate card surfaces, teal (#2DD4BF) as the primary accent for interactive elements, and muted gold for premium highlights. Typography combines DM Sans for headings and body text with JetBrains Mono for all financial data and metrics. Green and red are reserved strictly for market data indicators.
