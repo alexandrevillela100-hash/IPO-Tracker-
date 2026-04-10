@@ -84,4 +84,9 @@
 - [x] Fix NotFound page to use Dark Terminal Luxe theme (was using light background)
 
 ## GitHub Integration
-- [ ] Push all project files to GitHub repository (alexandrevillela100-hash/IPO-Tracker-)
+- [x] Push all project files to GitHub repository (alexandrevillela100-hash/IPO-Tracker-)
+
+## Landing Page Enhancements
+- [x] Add "Common Questions" FAQ section with Usuro.ai-style visuals
+- [x] Clickable question switching with subtle transitions
+- [x] Animation between question states (Framer Motion)

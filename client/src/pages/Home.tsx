@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import IPOCard from "@/components/IPOCard";
 import SECIPOCard from "@/components/SECIPOCard";
@@ -38,8 +39,65 @@ import { useLocation, Link } from "wouter";
  * - Mock data as fallback / showcase examples
  */
 
+/* ─── FAQ Accordion Item ─────────────────────────────────────────────── */
+function FAQItem({
+  question,
+  answer,
+  isOpen,
+  onToggle,
+}: {
+  question: string;
+  answer: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="border-b border-border/40 first:border-t first:border-border/40">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between py-5 text-left group cursor-pointer"
+      >
+        <span
+          className={`text-[15px] sm:text-base font-medium transition-colors duration-200 pr-4 ${
+            isOpen ? "text-primary" : "text-foreground group-hover:text-primary"
+          }`}
+        >
+          {question}
+        </span>
+        <motion.span
+          animate={{ rotate: isOpen ? 45 : 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          className={`shrink-0 w-5 h-5 flex items-center justify-center transition-colors duration-200 ${
+            isOpen ? "text-primary" : "text-muted-foreground group-hover:text-primary"
+          }`}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 0.5V13.5M0.5 7H13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </motion.span>
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            className="overflow-hidden"
+          >
+            <p className="pb-5 text-sm sm:text-[15px] text-muted-foreground leading-relaxed pr-10">
+              {answer}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function Home() {
   const [, setLocation] = useLocation();
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   const handlePlaceholder = (label: string) => {
     toast("Feature coming soon", {
@@ -675,6 +733,57 @@ export default function Home() {
                 {user}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Common Questions */}
+      <section className="py-20 border-t border-border/50">
+        <div className="container">
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight text-center mb-12">
+              Common questions
+            </h2>
+            <div className="space-y-0">
+              {[
+                {
+                  q: "What is IPO Radar AI and how does it work?",
+                  a: "IPO Radar AI is an intelligence platform that monitors SEC EDGAR for S-1 and F-1 filings in near real-time. When a new IPO registration is detected, the system extracts structured financial data from the filing and generates an institutional-grade initiation report using AI. Every figure in the report comes directly from the SEC filing — nothing is estimated or inferred."
+                },
+                {
+                  q: "Where does the financial data come from?",
+                  a: "All financial data is sourced exclusively from SEC EDGAR — the official public repository of Securities and Exchange Commission filings. IPO Radar connects to the EDGAR EFTS (full-text search) and Submissions APIs to retrieve filings, company metadata, and XBRL financial data. The AI never fabricates financial figures; it only narrates and analyzes data that has been verified against the original filing."
+                },
+                {
+                  q: "What types of SEC filings does IPO Radar track?",
+                  a: "The platform tracks four filing types: S-1 (initial domestic IPO registration), S-1/A (amendments to domestic filings), F-1 (initial foreign private issuer registration), and F-1/A (amendments to foreign filings). This covers the full lifecycle of an IPO from initial registration through pricing, including every material amendment along the way."
+                },
+                {
+                  q: "How are the AI initiation reports generated?",
+                  a: "Reports follow a four-stage pipeline. First, the system collects raw filing data from SEC EDGAR. Second, it structures the data into a standardized package — financials, risk factors, use of proceeds, and business overview. Third, the LLM generates a section-by-section narrative using only the structured data as input. Finally, the system assembles the complete report with proper formatting and citations. The LLM is explicitly constrained to never invent financial data."
+                },
+                {
+                  q: "Do I need a paid plan to use IPO Radar?",
+                  a: "No. The Free tier gives you access to the IPO calendar, basic company profiles, and sector browsing. The Pro plan at $49 per month unlocks full AI-generated initiation reports, real-time filing alerts, watchlist functionality, amendment diff analysis, and priority data access. Enterprise pricing is available for teams that need API access, custom integrations, and dedicated support."
+                },
+                {
+                  q: "How quickly are new filings detected?",
+                  a: "IPO Radar monitors the SEC EDGAR EFTS API for new filings on a continuous basis. In practice, new S-1 and F-1 filings typically appear in the platform within minutes of being published on EDGAR. Amendment filings (S-1/A, F-1/A) are detected on the same schedule, and users with alerts enabled receive notifications as soon as a new filing is processed."
+                },
+                {
+                  q: "Can I track specific companies or sectors?",
+                  a: "Yes. The watchlist feature lets you follow specific companies and receive alerts when they file new documents or amend existing registrations. You can also browse by sector — the platform maps every company's SIC code to a human-readable sector classification. Custom alert rules let you filter by filing type, sector, or specific company, so you only see what matters to your workflow."
+                },
+              ].map((item, index) => (
+                <FAQItem
+                  key={index}
+                  question={item.q}
+                  answer={item.a}
+                  isOpen={openFaqIndex === index}
+                  onToggle={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
