@@ -25,6 +25,7 @@ import {
 } from "./db";
 import { runIngestion } from "./edgarIngestion";
 import { invokeLLM } from "./_core/llm";
+import { syncSubscriber, generateAndSendDigest, previewDigest, getSubscriberStats, isConfigured as isBeehiivConfigured, unsubscribeByEmail } from "./beehiiv";
 
 export const appRouter = router({
   system: systemRouter,
@@ -50,6 +51,10 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         const isNew = await registerEmailSignup(input.email, input.source);
+        // Sync to Beehiiv in the background (non-blocking)
+        syncSubscriber(input.email, input.source).catch((err) =>
+          console.warn("[Beehiiv] Background sync failed:", err)
+        );
         return { success: true, isNew };
       }),
   }),
@@ -246,6 +251,52 @@ export const appRouter = router({
           userId: ctx.user.id,
           origin: input.origin,
         });
+      }),
+  }),
+
+  // ─── Newsletter / Beehiiv ──────────────────────────────────────────────
+
+  newsletter: router({
+    status: publicProcedure.query(async () => {
+      const stats = await getSubscriberStats();
+      return { configured: stats.configured, totalSubscribers: stats.totalSubscribers };
+    }),
+
+    subscribe: publicProcedure
+      .input(z.object({ email: z.string().email(), source: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const result = await syncSubscriber(input.email, input.source);
+        return result;
+      }),
+
+    unsubscribe: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        const result = await unsubscribeByEmail(input.email);
+        return result;
+      }),
+
+    previewDigest: protectedProcedure
+      .input(z.object({ siteUrl: z.string() }))
+      .query(async ({ input }) => {
+        const preview = await previewDigest(input.siteUrl);
+        return preview;
+      }),
+
+    sendDigest: protectedProcedure
+      .input(
+        z.object({
+          siteUrl: z.string(),
+          sendViaBeehiiv: z.boolean().default(false),
+          asDraft: z.boolean().default(true),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const result = await generateAndSendDigest(input.siteUrl, {
+          sendViaBeehiiv: input.sendViaBeehiiv,
+          asDraft: input.asDraft,
+        });
+        return result;
       }),
   }),
 

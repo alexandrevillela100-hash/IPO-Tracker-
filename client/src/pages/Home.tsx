@@ -23,6 +23,7 @@ import {
   Loader2,
   CheckCircle2,
   XCircle,
+  Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation, Link } from "wouter";
@@ -98,6 +99,20 @@ function FAQItem({
 export default function Home() {
   const [, setLocation] = useLocation();
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
+
+  const newsletterMutation = trpc.newsletter.subscribe.useMutation({
+    onSuccess: () => {
+      setNewsletterSubmitted(true);
+      toast.success("Subscribed!", {
+        description: "You'll receive our weekly IPO digest.",
+      });
+    },
+    onError: (err) => {
+      toast.error("Subscription failed", { description: err.message });
+    },
+  });
 
   const handlePlaceholder = (label: string) => {
     toast("Feature coming soon", {
@@ -788,6 +803,62 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Newsletter Signup */}
+      <section className="py-16 border-t border-border/50 bg-secondary/10">
+        <div className="container">
+          <div className="max-w-xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <Mail className="w-4 h-4 text-primary" />
+              <span className="text-xs font-semibold text-primary tracking-wide uppercase">Weekly IPO Digest</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+              Never miss an IPO filing.
+            </h2>
+            <p className="text-muted-foreground mt-3 text-base">
+              Get a weekly summary of new SEC filings, upcoming IPOs, and links to AI-generated initiation reports — delivered to your inbox.
+            </p>
+            {newsletterSubmitted ? (
+              <div className="mt-6 flex items-center justify-center gap-2 text-primary">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="font-semibold">You're subscribed! Check your inbox.</span>
+              </div>
+            ) : (
+              <form
+                className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (newsletterEmail) {
+                    newsletterMutation.mutate({ email: newsletterEmail, source: "homepage-newsletter" });
+                  }
+                }}
+              >
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  required
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-background border border-border/60 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm font-mono"
+                />
+                <Button
+                  type="submit"
+                  disabled={newsletterMutation.isPending}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-6"
+                >
+                  {newsletterMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Mail className="w-4 h-4 mr-2" />
+                  )}
+                  Subscribe
+                </Button>
+              </form>
+            )}
+            <p className="text-xs text-muted-foreground/50 mt-3">No spam. Unsubscribe anytime.</p>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-20 border-t border-border/50">
         <div className="container">
@@ -822,32 +893,80 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border/50 py-10 bg-secondary/20">
         <div className="container">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Radar className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">
-                IPO Radar AI
-              </span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            {/* Brand */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Radar className="w-4 h-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">IPO Radar AI</span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Real-time SEC filing intelligence powered by AI. Monitor S-1 and F-1 filings, track amendments, and get institutional-grade research.
+              </p>
             </div>
-            <div className="flex flex-wrap gap-6 text-xs text-muted-foreground">
-              {["Product", "Coverage", "Reports", "Pricing", "Contact", "Terms", "Privacy"].map(
-                (item) => (
-                  <button
-                    key={item}
-                    onClick={() => handlePlaceholder(item)}
-                    className="hover:text-foreground transition-colors"
+            {/* Links */}
+            <div>
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">Quick Links</h4>
+              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                {[
+                  { label: "Browse IPOs", href: "/ipos" },
+                  { label: "Calendar", href: "/calendar" },
+                  { label: "Sectors", href: "/sectors" },
+                  { label: "Pricing", href: "/pricing" },
+                  { label: "Contact", href: "/contact" },
+                  { label: "Terms", href: "/terms" },
+                ].map((link) => (
+                  <Link key={link.href} href={link.href} className="hover:text-foreground transition-colors">
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            {/* Newsletter in Footer */}
+            <div>
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">Weekly Digest</h4>
+              <p className="text-xs text-muted-foreground mb-3">IPO summaries, filing alerts, and AI reports — every week.</p>
+              {newsletterSubmitted ? (
+                <p className="text-xs text-primary font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Subscribed
+                </p>
+              ) : (
+                <form
+                  className="flex gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (newsletterEmail) {
+                      newsletterMutation.mutate({ email: newsletterEmail, source: "footer-newsletter" });
+                    }
+                  }}
+                >
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    required
+                    className="flex-1 px-3 py-1.5 rounded bg-background border border-border/60 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40 text-xs font-mono"
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={newsletterMutation.isPending}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs px-3"
                   >
-                    {item}
-                  </button>
-                )
+                    {newsletterMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
+                  </Button>
+                </form>
               )}
             </div>
           </div>
-          <p className="text-xs text-muted-foreground/60 mt-6 text-center">
-            SEC filings are monitored from official public sources. IPO Radar AI
-            does not provide investment advice. All AI-generated content is for
-            informational purposes only.
-          </p>
+          <div className="border-t border-border/30 pt-6">
+            <p className="text-xs text-muted-foreground/60 text-center">
+              SEC filings are monitored from official public sources. IPO Radar AI
+              does not provide investment advice. All AI-generated content is for
+              informational purposes only.
+            </p>
+          </div>
         </div>
       </footer>
 

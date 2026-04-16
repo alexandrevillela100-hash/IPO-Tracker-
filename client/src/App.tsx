@@ -38,6 +38,9 @@ import StartFree from "./pages/StartFree";
 // Auth
 import Login from "./pages/Login";
 
+// Admin
+import NewsletterAdmin from "./pages/NewsletterAdmin";
+
 // Authenticated app pages (post-login)
 import AppCalendar from "./pages/AppCalendar";
 import AppNews from "./pages/AppNews";
@@ -109,6 +112,9 @@ function Router() {
       {/* P-20: Legal */}
       <Route path={"/terms"} component={Legal} />
       <Route path={"/privacy"} component={Legal} />
+
+      {/* Admin: Newsletter Manager */}
+      <Route path="/admin/newsletter" component={NewsletterAdmin} />
 
       {/* Start Free / Email Registration */}
       <Route path={"/auth"} component={StartFree} />
